@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - "feature/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  basic-checks:
+    name: basic-checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Set up uv and Python
+        uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+        with:
+          python-version: "3.14"
+          enable-cache: false
+
+      - name: Check documentation and Python syntax
+        run: |
+          uv run --no-project --python 3.14 python - <<'PY'
+          from pathlib import Path
+          import ast
+
+          required_docs = (Path("docs/design.md"), Path("docs/tool-selection.md"))
+          for path in required_docs:
+              if not path.is_file() or not path.read_text(encoding="utf-8").strip():
+                  raise SystemExit(f"Required document is missing or empty: {path}")
+
+          python_files = [
+              path for path in Path(".").rglob("*.py")
+              if ".git" not in path.parts and ".venv" not in path.parts
+          ]
+          for path in python_files:
+              ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+          print(f"Validated {len(required_docs)} documents and {len(python_files)} Python files.")
+          PY
