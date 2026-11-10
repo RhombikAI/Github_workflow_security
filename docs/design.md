@@ -1,14 +1,14 @@
 # Pull request security workflow design
 
 **Status:** Draft for project-owner review  
-**Prepared:** 2026-11-02  
+**Prepared:** 2026-11-10
 **Repository:** `RhombikAI/Github_workflow_security`
 
 ## 1. Goal
 
 Build a reusable GitHub Actions workflow that checks pull requests for security issues before the owner merges them. A passing gate means the configured checks completed and passed; it does not prove that the application is vulnerability-free.
 
-The initial repository is public. The tool budget is free-only. The project owner reviews and merges pull requests. Omar reports that pulls do not require a PR or approval; repository options are not available to him, so required review/check enforcement has not been verified. Fork-based contributions and merge queues are out of scope. Python is the selected demo language, and `uv` will manage the project environment, dependencies, and lockfile.
+The repository is public on GitHub, with `main` as its default branch. The tool budget is free-only. The project owner reviews and merges pull requests. Fork-based contributions and merge queues are out of scope. Python is the selected demo language, Flask is the proposed framework, and `uv` manages the project environment, dependencies, and lockfile. Omar can push the implementation branch and a basic CI run has passed, but no PR has been opened yet. Omar does not have repository settings access. The connected GitHub integration listed no rulesets but could not read classic branch protection, so protection status remains unverified.
 
 ## 2. Proposed demo application
 
@@ -75,8 +75,12 @@ Scanners run in the CI environment. The planned dependency audit queries public 
 - Confirm the proposed Flask demo and supported Python version. Omar's current `uv` environment uses Python 3.14.7; confirm the chosen app and scanner dependencies support the project version.
 - Approve the selected tools, thresholds, and exception process.
 - Confirm who applies and verifies required PR, review, code-owner, check, force-push, deletion, and bypass settings. Omar does not have repository-options access, so these settings cannot be verified by him.
+- Confirm the CODEOWNERS reviewer account or team. The current repository owner account is `@RhombikAI`; confirm it is the intended code owner.
 - Confirm report/artifact retention and any organization restrictions on tool licenses or downloads.
-- Verify branch creation, PR opening, a basic CI run, and the block on merging a deliberately failing PR. The existing README initialization did not exercise this flow.
+- Apply the settings in [branch-protection.md](branch-protection.md). Omar cannot change repository settings.
+- Verify branch creation, PR opening, CI on a PR, and the block on merging a deliberately failing PR. The basic CI push run passed, but branch-protection enforcement has not been exercised.
+
+See [owner-questions.md](owner-questions.md) for questions that need answers before the proposed policy and protection settings are finalized.
 
 ## 8. Limitations
 

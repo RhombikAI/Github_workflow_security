@@ -1,0 +1,7 @@
+# The repository owner account is @RhombikAI; confirm the intended reviewer with the owner.
+/.github/workflows/ @RhombikAI
+/.github/pull_request_template.md @RhombikAI
+/.github/CODEOWNERS @RhombikAI
+/security/ @RhombikAI
+/scripts/security/ @RhombikAI
+/docs/branch-protection.md @RhombikAI
