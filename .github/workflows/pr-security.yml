@@ -15,7 +15,7 @@ jobs:
   secret-scan:
     name: secret-scan
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     steps:
       - name: Check out PR head with history
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -59,7 +59,7 @@ jobs:
           name: secret-scan-report-${{ github.run_id }}
           path: reports/
           if-no-files-found: warn
-          retention-days: 7
+          retention-days: 14
 
       - name: Fail on findings or scanner errors
         if: always()
@@ -70,7 +70,7 @@ jobs:
   python-security:
     name: python-security
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 5
     steps:
       - name: Check out PR head
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -87,10 +87,10 @@ jobs:
       - name: Install pinned security tools from the lock
         run: uv sync --locked --group security --no-install-project
 
-      - name: Export the locked runtime dependency graph
+      - name: Export locked runtime, development, and build dependencies
         run: |
           mkdir -p reports
-          uv export --locked --no-dev --no-group security --no-emit-project \
+          uv export --locked --group build --no-group security --no-emit-project \
             --format requirements-txt --output-file reports/runtime-requirements.txt
 
       - name: Audit locked runtime dependencies
@@ -134,7 +134,7 @@ jobs:
           name: python-security-reports-${{ github.run_id }}
           path: reports/
           if-no-files-found: warn
-          retention-days: 7
+          retention-days: 14
 
       - name: Fail on findings or scanner errors
         if: always()

@@ -1,6 +1,6 @@
 # Security scanner evaluation
 
-**Status:** Draft recommendation for project-owner review  
+**Status:** Scanner set approved by project owner; thresholds and remaining policy decisions pending
 **Reviewed:** 2026-11-10
 **Constraints:** Public GitHub repository, free tools only, Python managed with `uv`, no fork-based contributions or merge queues.
 
@@ -8,14 +8,14 @@
 
 Use a small set of command-line scanners on disposable GitHub-hosted runners. The proposed set is Gitleaks CLI for secrets, `pip-audit` for Python dependency advisories, Bandit for Python static analysis, Trivy for container and Dockerfile/configuration checks, and `zizmor` plus `actionlint` for workflow security and syntax.
 
-These are recommendations pending owner approval. Initial M3 implementation starts with Gitleaks CLI, `pip-audit`, and Bandit. Current pinned candidates are Gitleaks 8.30.1 (Linux x64 release SHA-256 verified against upstream metadata), `pip-audit` 2.10.1, and Bandit 1.9.4. Pin every third-party GitHub Action to a reviewed full commit SHA. Do not rely on floating tags such as `latest` in the required workflow.
+The owner approved this free CLI tool set. Initial M3 implementation starts with Gitleaks CLI, `pip-audit`, and Bandit. Current pinned candidates are Gitleaks 8.30.1 (Linux x64 release SHA-256 verified against upstream metadata), `pip-audit` 2.10.1, and Bandit 1.9.4. Pin every third-party GitHub Action to a reviewed full commit SHA. Do not rely on floating tags such as `latest` in the required workflow.
 
 ## Candidate evaluation
 
 | Category | Recommended candidate | Inputs and coverage | Licensing/cost | Data, permissions, output, and failure behavior | Limitations and version plan |
 |---|---|---|---|---|---|
 | Secrets | [Gitleaks CLI](https://github.com/gitleaks/gitleaks) | Scans Git commit patches in the PR base-to-head range, including secrets added then removed in a later PR commit. | CLI repository is MIT licensed; no paid service is required. The Gitleaks Action wrapper is excluded because its v2 license changed. | Runs locally in the job with read-only checkout. JSON reporting and `--redact` are used. A finding or scanner error fails the job. | Pin Gitleaks 8.30.1 and verify the upstream Linux x64 release SHA-256. Fetch full Git history. Record runtime from the initial CI run. |
-| Dependencies | [pip-audit](https://github.com/pypa/pip-audit) with `uv export` | Exports the committed lock to a fully pinned requirements file, then audits direct and transitive runtime packages. Development and build dependencies are excluded until the owner decides their scope. | Apache-2.0; free CLI. | Uses public PyPI advisory data; package names and versions are sent to the service, but application source is not. JSON output is saved. A finding or service/scanner error fails the job. | Pin `pip-audit` 2.10.1 in `uv.lock`. Verify lock export support against project changes. Record service/database availability and runtime. |
+| Dependencies | [pip-audit](https://github.com/pypa/pip-audit) with `uv export` | Exports the committed lock to a fully pinned requirements file, then audits direct and transitive runtime, development, and explicitly locked build-group packages. | Apache-2.0; free CLI. | Owner approved public advisory lookup using package/version data; application source is not uploaded. JSON output is saved. A finding or service/scanner error fails the job. | Pin `pip-audit` 2.10.1 and the build tool group in `uv.lock`. Record service/database availability and runtime. |
 | Static analysis | [Bandit](https://github.com/PyCQA/bandit) | Scans Python source under `src/` for common security issues. Produces rule IDs, severity/confidence, locations, and context. | Apache-2.0; free software. | Runs locally without credentials or source upload. JSON output is saved after code snippets are removed. A finding or scanner error fails the job. | Pin Bandit 1.9.4 in `uv.lock`. Initial scope is `src/`; severity/confidence thresholds need owner approval. Record runtime from the initial CI run. |
 | Container image | [Trivy](https://github.com/aquasecurity/trivy) image scan | Scan the exact image built by the PR job for supported operating-system and application packages. Record the image reference and immutable image ID/digest. | Apache-2.0; free CLI. | Scans a local image and downloads its vulnerability database; do not push the image to a registry. JSON reports are supported. Configure explicit exit behavior so blocking findings or scanner/database failures fail the job. | Detection depends on package metadata and database freshness. Keep the image local; no registry credentials. Pin the binary and database behavior, and report the database timestamp/version when available. |
 | Configuration | [Trivy](https://github.com/aquasecurity/trivy) config scan | Scan the Dockerfile and supported infrastructure files for known misconfiguration rules. | Same scanner and license as image scanning; no extra paid service. | Local CLI scan; JSON report and nonzero threshold configuration are available. Findings are reported separately from image package vulnerabilities. | Rule coverage varies by format. Verify at least two unsafe fixtures and corrected versions. Document unsupported files and any intentional exclusions. |
@@ -48,16 +48,14 @@ All PR jobs should declare `permissions: contents: read` unless a documented job
 - Verify downloaded tool checksums/signatures where the publisher provides them. Keep an update process that reviews releases and changes in rules.
 - Produce machine-readable output where supported: JSON for Gitleaks, `pip-audit`, Bandit, and Trivy; SARIF/JSON for zizmor. Keep actionlint diagnostics in the job log/summary unless a stable parser is added.
 - Record tool version, checked commit SHA, completion state, report path, and database freshness where applicable.
-- The initial M3 CI run measures Gitleaks, `pip-audit`, and Bandit durations; copy those values here before M1 is considered complete. Trivy, zizmor, and actionlint are not implemented yet, so their runtimes remain TBD.
+- Owner target: complete PR security scans within five minutes. The workflow jobs have five-minute timeouts; record observed durations and optimize if they exceed the target. The initial M3 CI run measures Gitleaks, `pip-audit`, and Bandit. Trivy, zizmor, and actionlint are not implemented yet, so their runtimes remain TBD.
+- Owner approved report retention of 10–15 days; the workflow uses 14 days.
 - Treat a missing lockfile, unsupported manifest, unavailable vulnerability service/database, malformed report, timeout, or unexpectedly skipped scan as a failure or explicitly justified not-applicable result.
 
 ## Owner approval required
 
-1. Approve the proposed tool set and the Gitleaks maintenance-only caveat.
-2. Confirm whether dependency auditing includes development and build dependencies as well as runtime dependencies.
-3. Approve severity/confidence thresholds and severity mappings across tools.
-4. Approve report retention and any organization license, download, or network restrictions.
-5. Confirm that public GitHub-hosted runners and their current free usage fit the project. GitHub's current billing docs say standard hosted runners are free for public repositories; recheck before rollout.
+1. Confirm severity/confidence thresholds and severity mappings across tools.
+2. Confirm that public GitHub-hosted runners and their current free usage fit the project. GitHub's current billing docs say standard hosted runners are free for public repositories; recheck before rollout.
 
 ## Primary references
 

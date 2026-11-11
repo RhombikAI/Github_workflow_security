@@ -8,7 +8,7 @@
 
 Build a reusable GitHub Actions workflow that checks pull requests for security issues before the owner merges them. A passing gate means the configured checks completed and passed; it does not prove that the application is vulnerability-free.
 
-The repository is public on GitHub, with `main` as its default branch. The tool budget is free-only. The project owner reviews and merges pull requests. Fork-based contributions and merge queues are out of scope. Python is the selected demo language, Flask is the proposed framework, and `uv` manages the project environment, dependencies, and lockfile. Omar can push the implementation branch and a basic CI run has passed, but no PR has been opened yet. Omar does not have repository settings access. The connected GitHub integration listed no rulesets but could not read classic branch protection, so protection status remains unverified.
+The repository is public on GitHub, with `main` as its default branch. The tool budget is free-only. The project owner reviews and merges pull requests. Fork-based contributions and merge queues are out of scope. The owner confirmed the Flask demo, Python 3.14 baseline, free scanners, and public advisory lookup using package/version data without source upload. Dependency auditing should cover runtime, development, and build dependencies where locked; the build tool is explicitly included in a `uv` dependency group. Artifact retention is 14 days, within the owner's 10–15 day range, and the PR security scan target is five minutes. `uv` manages the project environment, dependencies, and lockfile. Omar can push the implementation branch and a basic CI run has passed, but no PR has been opened yet. Omar does not have repository settings access. The connected GitHub integration listed no rulesets but could not read classic branch protection, so protection status remains unverified.
 
 ## 2. Proposed demo application
 
@@ -66,17 +66,16 @@ Map each tool's severity and confidence fields to this policy explicitly. Do not
 
 ## 6. Reports and data handling
 
-Every result should say what was scanned, the tool/version, checked commit, completion status, findings and locations, remediation, and whether the result blocks merging. Save machine-readable reports where supported and a short job summary. Redact secret-looking values. Set artifact retention with the owner before implementation.
+Every result should say what was scanned, the tool/version, checked commit, completion status, findings and locations, remediation, and whether the result blocks merging. Save machine-readable reports where supported and a short job summary. Redact secret-looking values. The owner approved 14-day artifact retention and a five-minute PR scan target.
 
 Scanners run in the CI environment. The planned dependency audit queries public vulnerability data using package/version information; it does not need application source upload. Container scanning uses the locally built image and a downloaded vulnerability database; do not publish the image. Confirm network endpoints and report retention during implementation.
 
 ## 7. Owner decisions and verification still needed
 
-- Confirm the proposed Flask demo and supported Python version. Omar's current `uv` environment uses Python 3.14.7; confirm the chosen app and scanner dependencies support the project version.
-- Approve the selected tools, thresholds, and exception process.
+- Confirm proposed severity thresholds and exception process.
 - Confirm who applies and verifies required PR, review, code-owner, check, force-push, deletion, and bypass settings. Omar does not have repository-options access, so these settings cannot be verified by him.
 - Confirm the CODEOWNERS reviewer account or team. The current repository owner account is `@RhombikAI`; confirm it is the intended code owner.
-- Confirm report/artifact retention and any organization restrictions on tool licenses or downloads.
+- Confirm the CODEOWNERS reviewer account or team and any runner restrictions.
 - Apply the settings in [branch-protection.md](branch-protection.md). Omar cannot change repository settings.
 - Verify branch creation, PR opening, CI on a PR, and the block on merging a deliberately failing PR. The basic CI push run passed, but branch-protection enforcement has not been exercised.
 

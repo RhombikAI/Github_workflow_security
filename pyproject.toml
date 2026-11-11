@@ -10,7 +10,10 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "pytest>=8.3,<9",
+    "pytest>=9.0.3,<10",
+]
+build = [
+    "hatchling>=1.27,<2",
 ]
 security = [
     "bandit==1.9.4",
@@ -18,7 +21,7 @@ security = [
 ]
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling>=1.27,<2"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
